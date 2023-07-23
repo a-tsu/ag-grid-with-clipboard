@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+    <head>
+        <script src="https://unpkg.com/ag-grid/dist/ag-grid.min.noStyle.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/ag-grid/dist/styles/ag-grid.css">
+        <link rel="stylesheet" href="https://unpkg.com/ag-grid/dist/styles/ag-theme-dark.css">
+
+    </head>
+<body>
+<div id="myGrid" style="height: 200px;width:600px;" class="ag-theme-dark"></div>
+<script>
+var columnDefs = [
+    {headerName: 'Make', field: 'make'},
+    {headerName: 'Model', field: 'model'},
+    {headerName: 'Price', field: 'price', editable: true}
+];
+
+// データの例
+var rowData = [
+    {make: 'Toyota', model: 'Celica', price: 35000},
+    {make: 'Ford', model: 'Mondeo', price: 32000},
+    {make: 'Porsche', model: 'Boxster', price: 72000}
+];
+
+var selectedNode = null;
+var selectedColumn = null;
+
+var gridOptions = {
+    columnDefs: columnDefs,
+    rowData: rowData,
+    enableRangeSelection: true, // 範囲選択を有効にする
+    enableCellTextSelection: true, // セルテキストの選択を有効にする
+    suppressCopyRowsToClipboard: false, // クリップボードへの行のコピーを無効にする
+    onCellFocused: function(event) {
+        console.log("cell focused!")
+        selectedNode = event.node;
+        selectedColumn = event.column;
+    }
+};
+
+// グリッドを初期化する
+var eGridDiv = document.querySelector('#myGrid');
+new agGrid.Grid(eGridDiv, gridOptions);
+
+// Ctrl + V のイベントハンドラを設定
+window.addEventListener('paste', function(event) {
+    // クリップボードからテキストを読み込む
+    var text = event.clipboardData.getData('text');
+    // テキストを選択したセルに適用する
+    var cell = gridOptions?.api?.getFocusedCell();
+    if (cell) {
+        var node = gridOptions.api.getRowNode(cell.rowIndex.toString());
+        var column = cell.column;
+        if (node && column) {
+            node.setDataValue(column, text);
+        }
+    }
+});
+
+// Ctrl + C のイベントハンドラを設定
+window.addEventListener('keydown', function(event) {
+    if (event.ctrlKey && event.key === 'c') {
+        // 選択したセルのデータをクリップボードにコピー
+        var cell = gridOptions?.api?.getFocusedCell();
+        if (cell) {
+            var node = gridOptions.api.getRowNode(cell.rowIndex.toString());
+            var column = cell.column;
+            if (node && column) {
+                var text = node.data[column.colId];
+                navigator.clipboard.writeText(text);
+            }
+        }
+    }
+});
+</script>
+</body>
